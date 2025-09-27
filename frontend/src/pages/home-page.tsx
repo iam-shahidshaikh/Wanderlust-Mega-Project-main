@@ -5,12 +5,17 @@ import PostCard from '@/components/post-card';
 import Post from '@/types/post-type';
 import { PostCardSkeleton } from '@/components/skeletons/post-card-skeleton';
 import Header from '@/layouts/header-layout';
+
 function HomePage() {
   const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
+    const API_BASE_URL = import.meta.env.VITE_API_URL; // ✅ use correct env variable
+
+    console.log("API Base URL:", API_BASE_URL); // debug
+
     axios
-      .get(import.meta.env.VITE_API_PATH + '/api/posts')
+      .get(`${API_BASE_URL}/api/posts`) // ✅ template string prevents undefined
       .then((response) => {
         setPosts(response.data);
       })
