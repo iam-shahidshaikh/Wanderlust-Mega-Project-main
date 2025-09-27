@@ -13,6 +13,9 @@ export default function BlogFeed() {
   const [latestPosts, setLatestPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // ✅ Define base URL once
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     let categoryEndpoint =
       selectedCategory === 'featured'
@@ -21,30 +24,32 @@ export default function BlogFeed() {
 
     setLoading(true);
     axios
-      .get(import.meta.env.VITE_API_PATH + categoryEndpoint)
+      .get(`${API_BASE_URL}${categoryEndpoint}`) // ✅ safe template string
       .then((response) => {
         setPosts(response.data);
         setLoading(false);
       })
       .catch((error) => {
-        console.error(error);
+        console.error('Error fetching category posts:', error);
+        setLoading(false);
       });
-  }, [selectedCategory]);
+  }, [selectedCategory, API_BASE_URL]);
 
   useEffect(() => {
     axios
-      .get(import.meta.env.VITE_API_PATH + '/api/posts/latest')
+      .get(`${API_BASE_URL}/api/posts/latest`) // ✅ safe template string
       .then((response) => {
         setLatestPosts(response.data);
       })
       .catch((error) => {
-        console.error(error);
+        console.error('Error fetching latest posts:', error);
       });
-  }, []);
+  }, [API_BASE_URL]);
 
   return (
     <div className="mx-auto my-6">
       <div className="-mx-4 flex flex-wrap">
+        {/* Left Column */}
         <div className="w-full p-4 md:w-2/3">
           <div className="-mb-1 cursor-text text-base tracking-wide text-slate-500 dark:text-dark-tertiary">
             What's hot?
@@ -55,7 +60,7 @@ export default function BlogFeed() {
               : `Posts related to "${selectedCategory}"`}
           </h1>
           <div className="flex flex-col gap-6">
-            {posts.length === 0 || loading == true
+            {posts.length === 0 || loading
               ? Array(5)
                   .fill(0)
                   .map((_, index) => <FeaturedPostCardSkeleton key={index} />)
@@ -64,7 +69,10 @@ export default function BlogFeed() {
                   .map((post, index) => <FeaturedPostCard key={index} post={post} />)}
           </div>
         </div>
+
+        {/* Right Column */}
         <div className="w-full p-4 md:w-1/3">
+          {/* Categories */}
           <div className="mb-6">
             <div className="-mb-1 cursor-text text-base tracking-wide text-light-tertiary dark:text-dark-tertiary">
               Discover by topic
@@ -79,14 +87,21 @@ export default function BlogFeed() {
                   aria-label={category}
                   type="button"
                   onClick={() =>
-                    setSelectedCategory(selectedCategory === category ? 'featured' : category)
+                    setSelectedCategory(
+                      selectedCategory === category ? 'featured' : category
+                    )
                   }
                 >
-                  <CategoryPill category={category} selected={selectedCategory === category} />
+                  <CategoryPill
+                    category={category}
+                    selected={selectedCategory === category}
+                  />
                 </button>
               ))}
             </div>
           </div>
+
+          {/* Latest Posts */}
           <div>
             <div className="-mb-1 cursor-text text-base tracking-wide text-slate-500 dark:text-dark-tertiary">
               What's new?
@@ -101,7 +116,9 @@ export default function BlogFeed() {
                     .map((_, index) => <LatestPostCardSkeleton key={index} />)
                 : latestPosts
                     .slice(0, 5)
-                    .map((post, index) => <LatestPostCard key={index} post={post} />)}
+                    .map((post, index) => (
+                      <LatestPostCard key={index} post={post} />
+                    ))}
             </div>
           </div>
         </div>
